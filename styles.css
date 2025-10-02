@@ -78,3 +78,85 @@ header h1 {
 #controls button:hover {
     background-color: var(--button-hover-color);
 }
+
+#main-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+#globe-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#globe-canvas {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+#info {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  max-width: 300px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+#info strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
+#info a {
+  color: #3498db;
+  text-decoration: none;
+}
+
+#info a:hover {
+  text-decoration: underline;
+}
+#footer {
+  background-color: var(--header-color);
+  color: white;
+}
+
+#animationControls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+#animationControls button,
+#animationControls input {
+  margin: 0 0.5rem;
+}
+
+#pauseButton {
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  font-weight: bold;
+}
+
+#pauseButton:hover {
+  background-color: #27ae60;
+}
