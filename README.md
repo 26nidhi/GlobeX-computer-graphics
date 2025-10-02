@@ -1,4 +1,4 @@
-# NewsMap Globe
+# GlobeX
 
 An interactive 3D globe visualization that displays real-time news events from around the world, with location-based markers determined by AI analysis.
 
