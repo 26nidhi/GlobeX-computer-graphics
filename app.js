@@ -143,3 +143,135 @@ async function addNewsMarkers(newsData) {
   }
   log(`Added ${addedMarkers} news markers to the globe.`);
 }
+
+function log(message) {
+  const logElement = document.getElementById("log");
+  logElement.innerHTML += `${new Date().toISOString()}: ${message}<br>`;
+  logElement.scrollTop = logElement.scrollHeight;
+  console.log(message);
+}
+
+let isFetchPaused = false;
+let fetchInterval;
+const pauseFetchButton = document.getElementById("pauseFetchButton");
+
+function toggleFetchPause() {
+  isFetchPaused = !isFetchPaused;
+  pauseFetchButton.textContent = isFetchPaused ? "Resume Fetch" : "Pause Fetch";
+  pauseFetchButton.classList.toggle("paused", isFetchPaused);
+
+  if (isFetchPaused) {
+    clearInterval(fetchInterval);
+    log("News fetching and Claude API calls paused");
+  } else {
+    startFetchInterval();
+    log("News fetching and Claude API calls resumed");
+  }
+}
+
+pauseFetchButton.addEventListener("click", toggleFetchPause);
+
+async function fetchNews() {
+  if (isFetchPaused) {
+    log("News fetching is paused. Click 'Resume Fetch' to continue.");
+    return;
+  }
+
+  const newsSource = document.getElementById("newsSource").value;
+  let params = new URLSearchParams();
+
+  if (newsSource === "top-headlines") {
+    params.append("endpoint", "top-headlines");
+    params.append("category", document.getElementById("category").value);
+    params.append("country", document.getElementById("country").value);
+  } else {
+    params.append("endpoint", "everything");
+    params.append("sources", document.getElementById("source").value);
+  }
+
+  const url = `${BACKEND_URL}/api/news?${params.toString()}`;
+  log(`Fetching news from URL: ${url}`);
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+    const data = await response.json();
+    log(`JSON parsed successfully. Received ${data.articles.length} articles.`);
+
+    await addNewsMarkers(data.articles);
+  } catch (error) {
+    log(`Error fetching news: ${error.name}: ${error.message}`);
+    console.error("Full error object:", error);
+  }
+}
+
+document.getElementById("newsSource").addEventListener("change", function () {
+  document.getElementById("category").style.display =
+    this.value === "top-headlines" ? "inline" : "none";
+  document.getElementById("country").style.display =
+    this.value === "top-headlines" ? "inline" : "none";
+  document.getElementById("source").style.display =
+    this.value === "top-headlines" ? "none" : "inline";
+});
+
+document.getElementById("fetchButton").addEventListener("click", fetchNews);
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+function onMouseMove(event) {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+}
+window.addEventListener("mousemove", onMouseMove, false);
+
+function hideInfoBox() {
+  document.getElementById("info").style.display = "none";
+}
+
+let isPaused = false;
+const pauseButton = document.getElementById("pauseButton");
+const animationSlider = document.getElementById("animationSlider");
+const sliderValue = document.getElementById("sliderValue");
+let lastSliderValue = 0;
+let selectedMarker = null;
+
+pauseButton.addEventListener("click", () => {
+  isPaused = !isPaused;
+  pauseButton.textContent = isPaused ? "Resume rotation" : "Pause rotation";
+});
+
+animationSlider.addEventListener("input", () => {
+  earth.rotation.y = (animationSlider.value * Math.PI) / 180;
+  sliderValue.textContent = `${animationSlider.value}°`;
+});
+
+function onClick(event) {
+  const infoBox = document.getElementById("info");
+  if (infoBox.contains(event.target)) return;
+
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(earth.children, true);
+
+  if (intersects.length > 0) {
+    let markerGroup = intersects[0].object;
+    while (markerGroup && !(markerGroup instanceof THREE.Group)) {
+      markerGroup = markerGroup.parent;
+    }
+
+    if (markerGroup && markerGroup.userData && markerGroup.userData.title) {
+      selectedMarker = markerGroup;
+      updateInfoBox(markerGroup.userData);
+    } else {
+      selectedMarker = null;
+      hideInfoBox();
+    }
+  } else {
+    selectedMarker = null;
+    hideInfoBox();
+  }
+}
