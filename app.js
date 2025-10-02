@@ -275,3 +275,109 @@ function onClick(event) {
     hideInfoBox();
   }
 }
+
+function updateInfoBox(newsData) {
+  const infoBox = document.getElementById("info");
+
+  if (!newsData) {
+    infoBox.style.display = "none";
+    return;
+  }
+
+  infoBox.innerHTML = `
+    <strong>${newsData.title || "No title"}</strong><br>
+    Location: ${newsData.location || "Unknown"}<br>
+    Source: ${newsData.source || "Unknown"}<br>
+    <a href="${
+      newsData.url || "#"
+    }" target="_blank" id="readMoreLink">Read more</a>
+  `;
+  infoBox.style.display = "block";
+
+  document
+    .getElementById("readMoreLink")
+    .addEventListener("click", function (event) {
+      event.stopPropagation();
+    });
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (!isPaused) {
+    earth.rotation.y += 0.002;
+    animationSlider.value = ((earth.rotation.y * 180) / Math.PI) % 360;
+    sliderValue.textContent = `${Math.round(animationSlider.value)}°`;
+  } else {
+    const currentSliderValue = parseInt(animationSlider.value);
+    if (currentSliderValue !== lastSliderValue) {
+      earth.rotation.y = (currentSliderValue * Math.PI) / 180;
+      lastSliderValue = currentSliderValue;
+    }
+  }
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(earth.children, true);
+
+  handleMarkerHover(intersects);
+
+  let hoveredMarkerGroup = intersects.find((intersect) => {
+    let obj = intersect.object;
+    while (obj && !(obj instanceof THREE.Group)) {
+      obj = obj.parent;
+    }
+    return obj && obj.userData && obj.userData.title;
+  })?.object;
+
+  document.body.style.cursor = hoveredMarkerGroup ? "pointer" : "default";
+
+  if (selectedMarker) {
+    updateInfoBox(selectedMarker.userData);
+  }
+
+  renderer.render(scene, camera);
+}
+
+const canvas = renderer.domElement;
+canvas.addEventListener("mousemove", onMouseMove, false);
+canvas.addEventListener("click", onClick, false);
+
+animate();
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+function startFetchInterval() {
+  clearInterval(fetchInterval);
+  fetchNews();
+  fetchInterval = setInterval(() => {
+    if (!isFetchPaused) {
+      fetchNews();
+    }
+  }, 5 * 60 * 1000);
+}
+
+function handleMarkerHover(intersects) {
+  const hoverColor = 0xffff00;
+
+  earth.children.forEach((markerGroup) => {
+    if (markerGroup instanceof THREE.Group) {
+      const marker = markerGroup.children.find(
+        (child) =>
+          child.geometry instanceof THREE.SphereGeometry &&
+          child.material.opacity !== 0
+      );
+      if (marker) {
+        const isHovered = intersects.some(
+          (intersect) => intersect.object.parent === markerGroup
+        );
+        marker.material.color.setHex(
+          isHovered ? hoverColor : marker.userData.defaultColor
+        );
+      }
+    }
+  });
+}
