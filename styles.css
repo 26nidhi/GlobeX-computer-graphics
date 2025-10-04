@@ -18,8 +18,15 @@ html {
     height: 100%;
     overflow: hidden;
     color: var(--text-color);
-    background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+    background: linear-gradient(180deg, #0a0820 0%, #1a0b2e 25%, #2d1b4e 50%, #1a0b2e 75%, #0a0820 100%);
+    background-size: 100% 200%;
+    animation: galaxyShift 20s ease-in-out infinite;
     position: relative;
+}
+
+@keyframes galaxyShift {
+    0%, 100% { background-position: 0% 0%; }
+    50% { background-position: 0% 100%; }
 }
 
 body::before {
@@ -30,21 +37,62 @@ body::before {
     width: 100%;
     height: 100%;
     background-image: 
-        radial-gradient(2px 2px at 20px 30px, #eee, transparent),
-        radial-gradient(2px 2px at 60px 70px, #fff, transparent),
-        radial-gradient(1px 1px at 50px 50px, #ddd, transparent),
-        radial-gradient(1px 1px at 130px 80px, #fff, transparent),
-        radial-gradient(2px 2px at 90px 10px, #eee, transparent);
-    background-size: 200px 200px;
-    background-position: 0 0, 40px 60px, 130px 270px, 70px 100px, 150px 50px;
-    animation: twinkle 8s ease-in-out infinite;
+        radial-gradient(circle at 15% 25%, rgba(138, 43, 226, 0.3) 0%, transparent 25%),
+        radial-gradient(circle at 85% 75%, rgba(75, 0, 130, 0.25) 0%, transparent 30%),
+        radial-gradient(circle at 50% 50%, rgba(72, 61, 139, 0.2) 0%, transparent 40%),
+        radial-gradient(circle at 30% 80%, rgba(123, 104, 238, 0.25) 0%, transparent 35%),
+        radial-gradient(circle at 70% 20%, rgba(147, 112, 219, 0.2) 0%, transparent 30%);
+    animation: nebulaFloat 25s ease-in-out infinite;
     pointer-events: none;
     z-index: 0;
 }
 
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(1px 1px at 60px 70px, rgba(255, 255, 255, 0.7), transparent),
+        radial-gradient(1px 1px at 50px 50px, rgba(200, 200, 255, 0.8), transparent),
+        radial-gradient(2px 2px at 130px 80px, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(1px 1px at 90px 10px, rgba(180, 180, 255, 0.7), transparent),
+        radial-gradient(1px 1px at 150px 120px, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(2px 2px at 200px 150px, rgba(220, 220, 255, 0.9), transparent),
+        radial-gradient(1px 1px at 250px 50px, rgba(255, 255, 255, 0.7), transparent);
+    background-size: 300px 300px;
+    background-position: 0 0, 40px 60px, 130px 270px, 70px 100px, 150px 50px, 220px 180px, 80px 200px, 190px 90px;
+    animation: twinkle 8s ease-in-out infinite, starsSlowDrift 60s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes nebulaFloat {
+    0%, 100% { 
+        opacity: 0.6;
+        transform: scale(1) rotate(0deg);
+    }
+    33% { 
+        opacity: 0.8;
+        transform: scale(1.1) rotate(120deg);
+    }
+    66% { 
+        opacity: 0.7;
+        transform: scale(0.95) rotate(240deg);
+    }
+}
+
 @keyframes twinkle {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.8; }
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+@keyframes starsSlowDrift {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-50px); }
 }
 
 #app {
@@ -87,20 +135,19 @@ header h1 {
     margin: 0;
     font-size: 2.5rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background: linear-gradient(135deg, #a8daff 0%, #e0e7ff 50%, #ffd6ff 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: 2px;
-    text-transform: uppercase;
     animation: titleGlow 3s ease-in-out infinite;
     position: relative;
     z-index: 1;
 }
 
 @keyframes titleGlow {
-    0%, 100% { filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.5)); }
-    50% { filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.8)); }
+    0%, 100% { filter: drop-shadow(0 0 10px rgba(168, 218, 255, 0.6)); }
+    50% { filter: drop-shadow(0 0 20px rgba(224, 231, 255, 0.9)); }
 }
 
 #controls {
@@ -183,7 +230,7 @@ header h1 {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: radial-gradient(ellipse at center, #1a2a4e 0%, #0a0e27 50%, #030508 100%);
+  background: radial-gradient(ellipse at center, #2d1b4e 0%, #1a0b2e 50%, #0a0820 100%);
 }
 
 #globe-container::before {
@@ -194,9 +241,11 @@ header h1 {
   width: 100%;
   height: 100%;
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(240, 147, 251, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(79, 172, 254, 0.1) 0%, transparent 50%);
+    radial-gradient(circle at 10% 20%, rgba(138, 43, 226, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(147, 112, 219, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(123, 104, 238, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 30% 70%, rgba(75, 0, 130, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 70% 30%, rgba(102, 126, 234, 0.2) 0%, transparent 45%);
   animation: galaxyPulse 15s ease-in-out infinite;
   pointer-events: none;
 }
@@ -517,4 +566,14 @@ header h1 {
 
 #pauseFetchButton.paused:hover {
   box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+}
+#info {
+  position: absolute;     /* if you already position it, keep your layout */
+  z-index: 1000;          /* must be above the WebGL canvas */
+  pointer-events: auto;   /* allow clicks */
+}
+
+#info a {
+  pointer-events: auto;
+  cursor: pointer;
 }

@@ -36,7 +36,9 @@ camera.position.z = 15;
 camera.lookAt(0, 0, 0);
 
 /* =================== Interaction / state =================== */
-let isPaused = false; // single source of truth for auto-rotation
+// IMPORTANT: separate flags so clicking/dragging doesn't cancel user pause
+let userPaused = false;   // set by "Pause rotation" button
+let isDragging = false;   // set by OrbitControls start/end
 
 // Enable OrbitControls if the examples script is included in index.html
 let controls = null;
@@ -49,8 +51,10 @@ if (typeof THREE.OrbitControls !== "undefined") {
   controls.maxDistance = 30;
   controls.rotateSpeed = 0.6;
   controls.zoomSpeed = 0.8;
-  controls.addEventListener("start", () => { isPaused = true; });
-  controls.addEventListener("end",   () => { isPaused = false; });
+
+  // Do NOT touch userPaused here
+  controls.addEventListener("start", () => { isDragging = true;  });
+  controls.addEventListener("end",   () => { isDragging = false; });
 }
 
 /* =================== Helpers =================== */
@@ -205,7 +209,7 @@ async function addNewsMarkers(articles) {
 
     const pos = latLonToVector3(coords.lat, coords.lon);
     marker.position.set(pos.x, pos.y, pos.z);
-    marker.userData.defaultColor = defaultColor;
+    marker.userData = { defaultColor };
 
     // smaller, centered hit sphere to reduce overlaps
     const hitGeometry = new THREE.SphereGeometry(0.15, 16, 16);
@@ -319,8 +323,8 @@ let lastSliderValue = 0;
 let selectedMarker = null;
 
 pauseButton.addEventListener("click", () => {
-  isPaused = !isPaused;
-  pauseButton.textContent = isPaused ? "Resume rotation" : "Pause rotation";
+  userPaused = !userPaused;
+  pauseButton.textContent = userPaused ? "Resume rotation" : "Pause rotation";
 });
 
 animationSlider.addEventListener("input", () => {
@@ -355,28 +359,42 @@ function updateInfoBox(newsData) {
   const infoBox = document.getElementById("info");
   if (!newsData) { infoBox.style.display = "none"; return; }
 
+  // Ensure the URL is absolute (add https:// if API returns bare domain/path)
+  let linkUrl = newsData.url || "#";
+  if (linkUrl && !/^https?:\/\//i.test(linkUrl)) {
+    linkUrl = "https://" + linkUrl.replace(/^\/+/, "");
+  }
+
   infoBox.innerHTML = `
     <strong>${newsData.title || "No title"}</strong><br>
     Location: ${newsData.location || "Unknown"}<br>
     Source: ${newsData.source || "Unknown"}<br>
-    <a href="${newsData.url || "#"}" target="_blank" id="readMoreLink">Read more</a>
+    <a id="readMoreLink"
+       href="${linkUrl}"
+       target="_blank"
+       rel="noopener noreferrer">Read more</a>
   `;
   infoBox.style.display = "block";
 
-  document.getElementById("readMoreLink").addEventListener("click", (e) => {
+  // Let the link open normally; just stop bubbling to the canvas
+  const readMore = document.getElementById("readMoreLink");
+  readMore.addEventListener("click", (e) => {
     e.stopPropagation();
   });
 }
+
 
 /* =================== Animation loop =================== */
 function animate() {
   requestAnimationFrame(animate);
 
-  if (!isPaused) {
+  // Rotate only when NOT paused by user AND NOT dragging the globe
+  if (!userPaused && !isDragging) {
     earth.rotation.y += 0.002;
     animationSlider.value = ((earth.rotation.y * 180) / Math.PI) % 360;
     sliderValue.textContent = `${Math.round(animationSlider.value)}°`;
   } else {
+    // while paused or dragging, keep slider→yaw sync if user moves the slider
     const currentSliderValue = parseInt(animationSlider.value, 10);
     if (currentSliderValue !== lastSliderValue) {
       earth.rotation.y = (currentSliderValue * Math.PI) / 180;
